@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from core.aqi.breakpoints import (
@@ -75,10 +75,20 @@ class ModelUpload(BaseModel):
 
 @app.on_event("startup")
 def startup() -> None:
-    Base.metadata.create_all(bind=engine)
-    if not os.getenv("OPENAQ_API_KEY"):
-        with SessionLocal() as db:
-            seed_demo(db)
+    if engine.dialect.name == "postgresql":
+        # Vercel can cold-start several function instances at once. Serialize DDL and
+        # demo seeding so concurrent create_all() calls cannot race on PostgreSQL types.
+        with engine.begin() as connection:
+            connection.execute(text("SELECT pg_advisory_xact_lock(735414092)"))
+            Base.metadata.create_all(bind=connection)
+            if not os.getenv("OPENAQ_API_KEY"):
+                with Session(bind=connection) as db:
+                    seed_demo(db)
+    else:
+        Base.metadata.create_all(bind=engine)
+        if not os.getenv("OPENAQ_API_KEY"):
+            with SessionLocal() as db:
+                seed_demo(db)
 
 
 @app.get("/health")
