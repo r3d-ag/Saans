@@ -8,7 +8,7 @@ import os
 from datetime import datetime, timezone
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
 from apps.api.app.models import FireEvent
@@ -26,7 +26,7 @@ def ingest_firms(db: Session) -> dict:
             response = client.get(url)
             response.raise_for_status()
             frames.append((product, response.text))
-    inserted = 0
+    rows: list[dict] = []
     for product, payload in frames:
         for item in csv.DictReader(io.StringIO(payload)):
             try:
@@ -36,15 +36,17 @@ def ingest_firms(db: Session) -> dict:
                 lat, lon = float(item["latitude"]), float(item["longitude"])
             except (KeyError, TypeError, ValueError):
                 continue
-            satellite = product
-            existing = db.scalar(select(FireEvent).where(FireEvent.lat == lat, FireEvent.lon == lon,
-                                                          FireEvent.acq_ts_utc == ts,
-                                                          FireEvent.satellite == satellite))
-            if existing:
-                continue
-            db.add(FireEvent(lat=lat, lon=lon, acq_ts_utc=ts,
-                             frp=float(item["frp"]) if item.get("frp") else None,
-                             confidence=item.get("confidence"), satellite=satellite))
-            inserted += 1
+            rows.append({"lat": lat, "lon": lon, "acq_ts_utc": ts,
+                         "frp": float(item["frp"]) if item.get("frp") else None,
+                         "confidence": item.get("confidence"), "satellite": product})
+
+    # FIRMS may return thousands of detections. Batch the idempotent inserts
+    # instead of issuing one round-trip query per row (which can exceed the
+    # hourly Actions window on a hosted Postgres database).
+    inserted = 0
+    for start in range(0, len(rows), 500):
+        statement = pg_insert(FireEvent).values(rows[start:start + 500])
+        result = db.execute(statement.on_conflict_do_nothing(constraint="uq_fire_event"))
+        inserted += max(result.rowcount or 0, 0)
     db.commit()
     return {"source": "NASA FIRMS", "products": list(products), "new_detections": inserted}
