@@ -34,11 +34,28 @@ function fmtDate() {
   return new Intl.DateTimeFormat(lang === "hi" ? "hi-IN" : "en-IN", {weekday:"long", day:"numeric", month:"long", timeZone:"Asia/Kolkata"}).format(new Date());
 }
 function safe(value, fallback="—") { return value === null || value === undefined ? fallback : value; }
+function stationDisplayName(station) {
+  const name = String(station?.name || "").trim();
+  const city = String(station?.city || "").trim();
+  if (name && (!city || /^(unknown|india|—)$/i.test(city) || name.toLowerCase() !== city.toLowerCase())) return name;
+  return city || name || "Saans station";
+}
+function stationLocation(station) {
+  const city = String(station?.city || "").trim();
+  const state = String(station?.state || "").trim();
+  const usefulCity = city && !/^(unknown|india|—)$/i.test(city);
+  const usefulState = state && !/^(unknown|india|—)$/i.test(state);
+  if (usefulCity && usefulState && city.toLowerCase() !== state.toLowerCase()) return `${city} · ${state}`;
+  return usefulCity || usefulState || station?.source || "";
+}
 
 async function loadStations() {
   const data = await api("/v1/stations"); stations = data.stations;
   const select = $("#station-select");
-  select.innerHTML = stations.map(s=>`<option value="${escapeHtml(s.id)}">${escapeHtml(s.city)} · ${escapeHtml(s.state)}</option>`).join("");
+  select.innerHTML = stations.map(s=>{
+    const location=stationLocation(s), label=stationDisplayName(s);
+    return `<option value="${escapeHtml(s.id)}">${escapeHtml(label)}${location&&location!==label?` · ${escapeHtml(location)}`:""}</option>`;
+  }).join("");
   if (!stations.some(s=>s.id===stationId)) stationId = stations[0]?.id;
   select.value = stationId;
   renderStations(stations);
@@ -65,8 +82,8 @@ async function loadCurrent() {
 
 function renderCurrent(data, fromCache) {
   const number = data.aqi;
-  const city = data.station?.city || "Saans station";
-  $("#station-heading").textContent = `${city} · ${data.station?.state || "India"}`;
+  const label=stationDisplayName(data.station), location=stationLocation(data.station);
+  $("#station-heading").textContent = location && location !== label ? `${label} · ${location}` : label;
   $("#updated-time").textContent = `${fromCache ? "Saved · " : ""}${fmtTime(data.as_of)} IST`;
   $("#freshness-label").textContent = fromCache ? "Offline cache" : tr("updated");
   $("#date-label").textContent = `${fmtDate().toUpperCase()} · AIR QUALITY`;
@@ -153,9 +170,9 @@ function drawHistory(points) {
 }
 function renderStations(items) {
   const list=$("#station-list"), pins=$("#map-pins");
-  list.innerHTML=items.map(s=>`<button class="station-row ${s.id===stationId?"active":""}" data-station="${escapeHtml(s.id)}"><i class="station-color"></i><span><strong>${escapeHtml(s.city)}</strong><small>${escapeHtml(s.name)}</small></span><b style="color:${COLOURS[s.category]||"#718077"}">${safe(s.aqi)}</b></button>`).join("");
+  list.innerHTML=items.map(s=>`<button class="station-row ${s.id===stationId?"active":""}" data-station="${escapeHtml(s.id)}"><i class="station-color"></i><span><strong>${escapeHtml(stationDisplayName(s))}</strong><small>${escapeHtml(stationLocation(s))}</small></span><b style="color:${COLOURS[s.category]||"#718077"}">${safe(s.aqi)}</b></button>`).join("");
   const minLat=29.5,maxLat=31.8,minLon=75.5,maxLon=78.2;
-  pins.innerHTML=items.map(s=>{const left=7+(s.lon-minLon)/(maxLon-minLon)*86,top=90-(s.lat-minLat)/(maxLat-minLat)*78;return `<span class="map-pin ${s.id===stationId?"active":""}" style="left:${left}%;top:${top}%" data-label="${escapeHtml(s.city)} · ${safe(s.aqi)}"></span>`;}).join("");
+  pins.innerHTML=items.map(s=>{const left=7+(s.lon-minLon)/(maxLon-minLon)*86,top=90-(s.lat-minLat)/(maxLat-minLat)*78;return `<span class="map-pin ${s.id===stationId?"active":""}" style="left:${left}%;top:${top}%" data-label="${escapeHtml(stationDisplayName(s))} · ${safe(s.aqi)}"></span>`;}).join("");
   $$(".station-row",list).forEach(button=>button.addEventListener("click",()=>selectStation(button.dataset.station)));
 }
 async function selectStation(id) {
