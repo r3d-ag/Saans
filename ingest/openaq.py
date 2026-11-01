@@ -105,7 +105,13 @@ def ingest_openaq(db: Session) -> dict:
             if distance <= 100:
                 candidates.append((distance, location))
 
-        locations = [location for _, location in sorted(candidates, key=lambda item: item[0])[:30]]
+        # Keep the first scheduled sync bounded: the measurements endpoint is
+        # per sensor, so querying every regional location can exceed the
+        # Actions job window during its initial 24-hour bootstrap. Three
+        # nearest stations provide local data plus two neighbours for checks;
+        # deployments can widen this with OPENAQ_MAX_LOCATIONS after bootstrap.
+        max_locations = max(1, min(int(os.getenv("OPENAQ_MAX_LOCATIONS", "3")), 30))
+        locations = [location for _, location in sorted(candidates, key=lambda item: item[0])[:max_locations]]
         selected_ids = {str(location["id"]) for location in locations}
         # Keep the live station list focused on the Ambala area when old imports
         # or wider OpenAQ results included distant cities.
