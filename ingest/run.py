@@ -28,6 +28,7 @@ def ingest_all() -> dict:
             try:
                 results.append(runner(db))
             except Exception as exc:  # keep one upstream outage from blocking other sources
+                db.rollback()
                 results.append({"source": runner.__name__, "error": f"{type(exc).__name__}: {exc}"})
         issued = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
         snapshots = 0

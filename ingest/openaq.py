@@ -128,6 +128,9 @@ def ingest_openaq(db: Session) -> dict:
                 station.name, station.city, station.lat, station.lon = name[:250], city[:100], float(lat), float(lon)
                 station.active, station.source = True, "OpenAQ"
             station_count += 1
+            # SessionLocal disables autoflush. Persist the parent row before
+            # inserting clean_readings that reference it.
+            db.flush()
             try:
                 latest = _get(client, f"locations/{location_id}/latest", {"limit": 100}).get("results", [])
             except httpx.HTTPStatusError:
