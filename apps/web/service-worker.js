@@ -1,4 +1,4 @@
-const CACHE = "saans-shell-v3";
+const CACHE = "saans-shell-v4";
 const SHELL = ["/", "/assets/styles.css", "/assets/app.js", "/assets/manifest.webmanifest", "/assets/icon.svg"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
@@ -16,9 +16,19 @@ self.addEventListener("fetch", event => {
     return;
   }
   if (url.origin === self.location.origin) {
-    event.respondWith(caches.match(event.request).then(cached => cached || fetch(event.request).then(response => {
-      const copy = response.clone(); caches.open(CACHE).then(cache => cache.put(event.request, copy)); return response;
-    })));
+    event.respondWith((async () => {
+      const cached = await caches.match(event.request);
+      try {
+        const response = await fetch(event.request);
+        if (response.ok) {
+          const copy = response.clone();
+          await caches.open(CACHE).then(cache => cache.put(event.request, copy));
+        }
+        return response;
+      } catch {
+        return cached || Response.error();
+      }
+    })());
   }
 });
 self.addEventListener("push", event => {
