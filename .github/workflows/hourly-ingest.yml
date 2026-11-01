@@ -19,7 +19,7 @@ jobs:
           python-version: "3.12"
       - run: pip install httpx sqlalchemy 'psycopg[binary]'
       - name: Check required secrets
-        run: python -c "import os; assert os.getenv('DATABASE_URL') and os.getenv('OPENAQ_API_KEY'), 'Set DATABASE_URL and OPENAQ_API_KEY repository secrets'"
+        run: python -c "import os; assert os.getenv('DATABASE_URL'), 'Set DATABASE_URL repository secret; OpenAQ and FIRMS keys are optional'"
       - run: python -m ingest.run
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
