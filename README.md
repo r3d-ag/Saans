@@ -72,7 +72,7 @@ OpenAQ reports its source attribution and license metadata. Check the underlying
 ## Deploy to Render
 
 1. Push this repository to GitHub and connect it to Render using `render.yaml`.
-2. Create a persistent PostgreSQL database with a provider such as Supabase. Set its pooled or direct connection string as `DATABASE_URL`, using `postgresql+psycopg://...`.
+2. Create a persistent PostgreSQL database with a provider such as Supabase. For Render, copy the Supabase shared pooler **session mode** connection string (IPv4-compatible), add `sslmode=require`, and use the `postgresql+psycopg://...` scheme for `DATABASE_URL`. Supabase direct connections are IPv6-only unless the IPv4 add-on is enabled.
 3. Add OpenAQ/FIRMS keys in the Render environment if live data is wanted. Set the same `DATABASE_URL`, OpenAQ key and FIRMS key as GitHub Actions repository secrets so the hourly worker writes to the same database.
 4. After the service has deployed, open `/health`, then `/docs`. The free web service can sleep while idle; first page load may take about a minute. The separate GitHub Actions worker continues ingestion.
 
