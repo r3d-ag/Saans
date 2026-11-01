@@ -10,7 +10,7 @@ Saans is a deployable air-quality dashboard for Ambala, Haryana, Panchkula and C
 - OpenAQ latest-reading ingestion, Open-Meteo weather forecast ingestion, and NASA FIRMS VIIRS fire ingestion.
 - CPCB calculation, station history, 24/48-hour persistence-baseline outlook, heuristic source evidence, CSV export, and proximity estimate.
 - Optional Telegram and Web Push alert delivery with quiet hours and a six-hour duplicate guard.
-- Docker Compose, Render Blueprint, hourly GitHub Actions ingestion, CI, offline shell cache, and API docs at `/docs`.
+- Docker Compose, Vercel FastAPI deployment, hourly GitHub Actions ingestion, CI, offline shell cache, and API docs at `/docs`.
 
 The first released forecast is the persistence baseline. It does not claim a trained model has beaten persistence. AQI is shown only when there are at least three pollutant sub-indices, including PM2.5 or PM10, with sufficient hourly data. The AQI calculation method is `cpcb-naqi-2014-v1`. Versioned breakpoints and method metadata live in `core/aqi/data/cpcb-naqi-2014-v1.json` and are returned by `/v1/method`.
 
@@ -40,7 +40,7 @@ $env:DATABASE_URL = "sqlite:///./saans.db"
 uvicorn apps.api.app.main:app --reload --port 8000
 ```
 
-Then open `http://localhost:8000`. Do not use the SQLite file for a public deployment; Render's local filesystem is ephemeral.
+Then open `http://localhost:8000`. Do not use the SQLite file for a public deployment; serverless filesystems are ephemeral.
 
 ## Connect live data
 
@@ -69,14 +69,15 @@ The bundled GitHub Actions workflow runs at minute 17 each hour. Add repository 
 
 OpenAQ reports its source attribution and license metadata. Check the underlying provider's terms before redistributing or selling cleaned exports. Open-Meteo data must be attributed as required by its CC BY 4.0 license; its free API is for non-commercial use. FIRMS hotspots are sparse satellite observations: missing detections do not prove that no fire occurred.
 
-## Deploy to Render
+## Deploy to Vercel
 
-1. Push this repository to GitHub and connect it to Render using `render.yaml`.
-2. Create a persistent PostgreSQL database with a provider such as Supabase. For Render, copy the Supabase shared pooler **session mode** connection string (IPv4-compatible), add `sslmode=require`, and use the `postgresql+psycopg://...` scheme for `DATABASE_URL`. Supabase direct connections are IPv6-only unless the IPv4 add-on is enabled.
-3. Add OpenAQ/FIRMS keys in the Render environment if live data is wanted. Set the same `DATABASE_URL`, OpenAQ key and FIRMS key as GitHub Actions repository secrets so the hourly worker writes to the same database.
-4. After the service has deployed, open `/health`, then `/docs`. The free web service can sleep while idle; first page load may take about a minute. The separate GitHub Actions worker continues ingestion.
+The repository is configured to deploy the FastAPI app from `apps/api/app/main.py` using Vercel's Python runtime. Import the GitHub repository in Vercel and set these Production environment variables before deploying:
 
-The Render template deliberately leaves `DATABASE_URL` and provider keys as secret prompts. Do not deploy a public instance with the example credentials in `.env.example`. A public service also needs HTTPS, a long random `INGEST_TOKEN`, and an origin allow-list set to its real URL.
+- `DATABASE_URL`: Supabase session-pooler URL using `postgresql+psycopg://...` and `sslmode=require`.
+- `INGEST_TOKEN`: long random secret for internal ingestion and alert routes.
+- `OPENAQ_API_KEY` and `FIRMS_MAP_KEY`: optional provider credentials for live readings and fire detections. Without OpenAQ, the app starts with clearly labelled demo data.
+
+The database schema is created on first startup. Check `/health` and `/docs` after deployment. Vercel hosts the API in Frankfurt (`fra1`) to keep it near the configured Supabase database; static frontend files use the same origin. Add the same database and provider credentials as GitHub Actions repository secrets to enable scheduled ingestion and model jobs. The app does not need a separate Render service.
 
 ## API
 
