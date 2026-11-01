@@ -17,7 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
-from sqlalchemy import select, text
+from sqlalchemy import select, text, update
 from sqlalchemy.orm import Session
 
 from core.aqi.breakpoints import (
@@ -81,12 +81,20 @@ def startup() -> None:
         with engine.begin() as connection:
             connection.execute(text("SELECT pg_advisory_xact_lock(735414092)"))
             Base.metadata.create_all(bind=connection)
-            if not os.getenv("OPENAQ_API_KEY"):
+            if os.getenv("OPENAQ_API_KEY"):
+                # Keep illustrative seed stations out of live responses after a key
+                # is enabled; real OpenAQ locations are activated by the ingester.
+                connection.execute(update(Station).where(Station.source == "demo").values(active=False))
+            else:
                 with Session(bind=connection) as db:
                     seed_demo(db)
     else:
         Base.metadata.create_all(bind=engine)
-        if not os.getenv("OPENAQ_API_KEY"):
+        if os.getenv("OPENAQ_API_KEY"):
+            with SessionLocal() as db:
+                db.execute(update(Station).where(Station.source == "demo").values(active=False))
+                db.commit()
+        else:
             with SessionLocal() as db:
                 seed_demo(db)
 
