@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install httpx sqlalchemy 'psycopg[binary]'
+      - run: pip install httpx sqlalchemy 'psycopg[binary]' 'pandas>=2.2,<3'
       - name: Check required secrets
         run: python -c "import os; assert os.getenv('DATABASE_URL'), 'Set DATABASE_URL repository secret; OpenAQ and FIRMS keys are optional'"
         env:
