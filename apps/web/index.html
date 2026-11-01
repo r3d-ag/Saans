@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#101d1c" />
+  <meta name="description" content="Saans gives you a clear, explainable view of air quality around Ambala, Haryana and Chandigarh." />
+  <link rel="manifest" href="/assets/manifest.webmanifest" />
+  <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <title>Saans — Air, made clear</title>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="rail" aria-label="Main navigation">
+      <a class="brand-mark" href="#top" aria-label="Saans home"><span>सा</span></a>
+      <nav>
+        <button class="rail-link active" data-view="now" aria-label="Now" title="Now"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5M5.5 10v10h13V10M9 20v-6h6v6"/></svg></button>
+        <button class="rail-link" data-view="forecast" aria-label="Forecast" title="Forecast"><svg viewBox="0 0 24 24"><path d="M3 18h18M5 15l4-4 3 2 6-7M15 6h3v3"/></svg></button>
+        <button class="rail-link" data-view="map" aria-label="Map" title="Map"><svg viewBox="0 0 24 24"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15m6-12v15"/></svg></button>
+        <button class="rail-link" data-view="method" aria-label="Method" title="Method"><svg viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h9M7 2v6m10 1v6m-6 2v6"/></svg></button>
+      </nav>
+      <div class="rail-bottom"><button class="rail-link" id="about-button" aria-label="About" title="About">i</button></div>
+    </aside>
+
+    <main class="main-content" id="top">
+      <header class="topbar">
+        <div class="wordmark"><span class="wordmark-symbol">◌</span><span>saans</span><span class="wordmark-dot">.</span></div>
+        <div class="topbar-right">
+          <span class="live-pill"><i></i><span id="freshness-label">Updating</span></span>
+          <button class="language-toggle" id="language-toggle" aria-label="Switch language">हि <span>/</span> EN</button>
+          <button class="icon-button" id="refresh-button" aria-label="Refresh data" title="Refresh">↻</button>
+        </div>
+      </header>
+
+      <div class="page-heading">
+        <div><div class="eyebrow" id="date-label">AIR QUALITY · NORTH INDIA</div><h1 id="page-title">Know the air around you.</h1></div>
+        <label class="station-picker"><span class="sr-only">Choose monitoring station</span><select id="station-select" aria-label="Monitoring station"></select><span class="chevron">⌄</span></label>
+      </div>
+
+      <div class="demo-banner" id="demo-banner"><span class="demo-icon">✳</span><span><strong>Sample view</strong> — these are illustrative readings until you connect live sources.</span><button id="banner-dismiss" aria-label="Dismiss">×</button></div>
+
+      <section class="hero-grid" id="now-view">
+        <article class="aqi-panel panel" id="aqi-panel">
+          <div class="panel-kicker"><span class="status-dot"></span><span id="station-heading">Ambala · Haryana</span><span class="panel-kicker-spacer"></span><span id="updated-time">—</span></div>
+          <div class="aqi-main">
+            <div class="aqi-number-wrap"><span class="aqi-caption">CURRENT AQI</span><div class="aqi-number" id="aqi-number">—</div><div class="aqi-category" id="aqi-category">Loading air…</div></div>
+            <div class="aqi-ring-wrap"><div class="aqi-ring" id="aqi-ring"><div><span id="ring-value">—</span><small> / 500</small></div></div><span class="ring-caption">CPCB scale</span></div>
+          </div>
+          <div class="hero-footer"><div class="dominant"><span class="dominant-icon">↗</span><div><small>MAIN CONTRIBUTOR</small><strong id="dominant-pollutant">—</strong></div></div><div class="trust-badge" id="trust-badge"><span class="trust-dot"></span><span id="trust-label">Trust —</span><button class="help-dot" title="Trust combines freshness, completeness, quality flags and nearby-station agreement." aria-label="What is trust?">?</button></div></div>
+          <div class="scale-bar"><span style="--c:#22a879"></span><span style="--c:#a5c84d"></span><span style="--c:#f2c94c"></span><span style="--c:#ef8844"></span><span style="--c:#d9545d"></span><span style="--c:#7856a7"></span></div>
+        </article>
+
+        <article class="why-panel panel">
+          <div class="section-top"><div><span class="section-index">01 / READ THE AIR</span><h2>What’s driving it?</h2></div><span class="spark-icon">✳</span></div>
+          <div id="causes-list" class="causes-list"><div class="cause-empty">Loading the signals…</div></div>
+          <div class="evidence-note"><span>i</span><span>Source labels are clues, not proof. Satellites can miss fires between passes.</span></div>
+          <a href="#method" class="text-link" data-view="method">How we decide <span>↗</span></a>
+        </article>
+      </section>
+
+      <section class="pollutant-section">
+        <div class="section-heading"><div><span class="section-index">02 / THE DETAILS</span><h2>Pollutant readings</h2></div><span class="section-hint">Rolling average · where data permits</span></div>
+        <div class="pollutant-grid" id="pollutant-grid"></div>
+      </section>
+
+      <section class="dashboard-grid">
+        <article class="panel trend-panel">
+          <div class="section-top"><div><span class="section-index">03 / RECENT TREND</span><h2>Past 24 hours</h2></div><span class="mini-tag">Hourly AQI</span></div>
+          <div class="chart-wrap"><canvas id="history-chart" role="img" aria-label="AQI history chart for the past 24 hours"></canvas><div class="chart-empty" id="chart-empty">Waiting for enough hourly data</div></div>
+          <div class="chart-axis"><span>24h ago</span><span>12h ago</span><span>Now</span></div>
+        </article>
+        <article class="panel forecast-panel" id="forecast-view">
+          <div class="section-top"><div><span class="section-index">04 / WHAT’S NEXT</span><h2>Forecast outlook</h2></div><span class="mini-tag muted-tag">Baseline · 24 / 48 h</span></div>
+          <div id="forecast-cards" class="forecast-cards"><div class="forecast-card"><span>24 HOURS</span><b>—</b><small>Loading</small></div><div class="forecast-card"><span>48 HOURS</span><b>—</b><small>Loading</small></div></div>
+          <div class="forecast-note"><span>⌁</span><span>Persistence baseline. Bands are indicative and have not yet been calibrated on a held-out season.</span></div>
+        </article>
+      </section>
+
+      <section class="panel action-panel">
+        <div class="action-copy"><span class="section-index">05 / MAKE A PLAN</span><h2>A little planning helps.</h2><p id="action-copy">Check the latest station reading before spending a long time outdoors.</p></div>
+        <div class="action-options"><div class="action-chip"><span class="action-symbol">◷</span><div><small>BEST TIME OUT</small><strong id="best-time">Check hourly trend</strong></div></div><button class="button-primary" id="alerts-open">Set an alert <span>→</span></button></div>
+        <div class="advice-foot">General guidance only · Not medical advice</div>
+      </section>
+
+      <section class="map-section panel" id="map-view">
+        <div class="section-top"><div><span class="section-index">06 / AROUND YOU</span><h2>Nearby stations</h2></div><span class="mini-tag">Ambala region</span></div>
+        <div class="map-content"><div class="map-visual" id="map-visual"><div class="map-grid-lines"></div><div class="map-river"></div><div class="map-road road-one"></div><div class="map-road road-two"></div><div class="map-pins" id="map-pins"></div><div class="map-label label-north">PUNJAB</div><div class="map-label label-center">HARYANA</div><div class="map-label label-east">UTTAR PRADESH</div><div class="map-legend"><i></i> Station readings</div></div><div class="station-list" id="station-list"></div></div>
+        <p class="map-footnote">Station values are measurements reported by the selected source. A map estimate is labelled separately.</p>
+      </section>
+
+      <section class="panel method-panel" id="method-view">
+        <div class="section-top"><div><span class="section-index">07 / SHOW THE MATH</span><h2>How Saans calculates AQI</h2></div><span class="mini-tag">CPCB · 2014</span></div>
+        <p class="method-intro">Each pollutant gets its own sub-index from a concentration band. The highest valid sub-index becomes the station AQI.</p>
+        <div class="formula-card"><span class="formula-label">PIECEWISE LINEAR INTERPOLATION</span><div>I<sub>p</sub> = I<sub>lo</sub> + (C<sub>p</sub> − BP<sub>lo</sub>) × <span class="fraction"><span>I<sub>hi</sub> − I<sub>lo</sub></span><span>BP<sub>hi</sub> − BP<sub>lo</sub></span></span></div></div>
+        <div class="method-bottom"><div><strong>When can we show an overall AQI?</strong><p>At least 3 valid pollutants, including PM2.5 or PM10. The CPCB method requires a 24-hour average (or 8-hour for CO and O₃) and 16 hours of data for a sub-index. Saans uses 6 of 8 values for its 8-hour calculations as a documented project choice.</p></div><button class="text-button" id="show-math">Show this reading’s math <span>⌄</span></button></div>
+        <div class="math-details" id="math-details"></div>
+        <div class="method-credits">Data credits and limits: OpenAQ · Open-Meteo · NASA FIRMS <span>Method version: cpcb-naqi-2014-v1</span></div>
+      </section>
+
+      <footer class="footer"><span>saans<span class="wordmark-dot">.</span> Air, made clear.</span><span>Built for Ambala · Haryana · India</span><a href="https://openaq.org" target="_blank" rel="noreferrer">OpenAQ data terms ↗</a></footer>
+    </main>
+  </div>
+
+  <dialog class="modal" id="alert-modal"><form method="dialog"><button class="modal-close" aria-label="Close">×</button></form><span class="section-index">STAY IN THE LOOP</span><h2>Get an air quality alert</h2><p>Choose your station and the AQI level you care about. Saans sends at most one alert in six hours and stays quiet overnight.</p><label class="field-label">Alert channel<select id="alert-channel"><option value="telegram">Telegram</option><option value="webpush">Browser push</option></select></label><label class="field-label" id="destination-label">Telegram chat ID<input id="alert-destination" placeholder="Start the Saans bot, then enter your chat ID" /></label><label class="field-label">Alert from<select id="alert-threshold"><option value="101">Moderately Polluted · 101+</option><option value="201" selected>Poor · 201+</option><option value="301">Very Poor · 301+</option><option value="401">Severe · 401+</option></select></label><button class="button-primary full-button" id="save-alert">Save alert <span>→</span></button><div class="modal-hint" id="alert-feedback">No health profile is stored.</div></dialog>
+  <dialog class="modal small-modal" id="about-modal"><form method="dialog"><button class="modal-close" aria-label="Close">×</button></form><span class="section-index">ABOUT SAANS</span><h2>Air, made clear.</h2><p>Saans is an educational air quality monitor for Ambala and nearby cities. It recomputes CPCB-style AQI from pollutant readings, shows data freshness, and labels possible pollution drivers as likely.</p><p>It is not a medical device and does not provide medical advice. Browser location is not stored. If you sign up for alerts, Saans stores only the channel destination, station and threshold.</p><button class="button-secondary" id="about-close">Got it</button></dialog>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="/assets/app.js" defer></script>
+</body>
+</html>

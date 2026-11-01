@@ -1,0 +1,27 @@
+name: Hourly data ingestion
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: saans-ingest
+  cancel-in-progress: false
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install httpx sqlalchemy 'psycopg[binary]'
+      - name: Check required secrets
+        run: python -c "import os; assert os.getenv('DATABASE_URL') and os.getenv('OPENAQ_API_KEY'), 'Set DATABASE_URL and OPENAQ_API_KEY repository secrets'"
+      - run: python -m ingest.run
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          OPENAQ_API_KEY: ${{ secrets.OPENAQ_API_KEY }}
+          FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}

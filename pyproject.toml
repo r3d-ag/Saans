@@ -1,0 +1,69 @@
+[project]
+name = "saans"
+version = "0.1.0"
+description = "An explainable, hyperlocal AQI platform for Haryana, Punjab and Chandigarh"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115,<1",
+    "uvicorn[standard]>=0.34,<1",
+    "pydantic>=2.10,<3",
+    "pandas>=2.2,<3",
+    "numpy>=2.0,<3",
+    "scikit-learn>=1.6,<2",
+    "lightgbm>=4.6,<5",
+    "httpx>=0.28,<1",
+    "sqlalchemy>=2.0.38,<3",
+    "psycopg[binary]>=3.2,<4",
+    "python-dotenv>=1.0,<2",
+    "pywebpush>=2.0,<3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2,<9",
+    "pytest-cov>=5.0,<6",
+    "pytest-asyncio>=0.23,<1",
+    "hypothesis>=6.100,<7",
+    "ruff>=0.4,<1",
+    "mypy>=1.10,<2",
+    "pre-commit>=3.7,<4",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# ── Ruff ─────────────────────────────────────────────────────────────────
+[tool.ruff]
+target-version = "py312"
+line-length = 99
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+]
+ignore = ["E501"] # Formatter-independent line wrap policy for readable source.
+
+[tool.ruff.lint.isort]
+known-first-party = ["core", "ingest", "ml", "apps"]
+
+# ── Mypy ─────────────────────────────────────────────────────────────────
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["core", "ingest", "ml", "apps"]
+
+# ── Pytest ───────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+addopts = "-ra -q"

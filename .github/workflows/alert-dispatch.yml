@@ -1,0 +1,26 @@
+name: Scheduled alert dispatch
+on:
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check deployment secrets
+        run: python -c "import os; assert os.getenv('SAANS_API_URL') and os.getenv('INGEST_TOKEN'), 'Set SAANS_API_URL and INGEST_TOKEN repository secrets'"
+        env:
+          SAANS_API_URL: ${{ secrets.SAANS_API_URL }}
+          INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}
+      - name: Wake API and dispatch alerts
+        run: >-
+          curl --fail-with-body --silent --show-error --max-time 180
+          --retry 3 --retry-all-errors --retry-delay 20
+          -X POST "${SAANS_API_URL%/}/internal/alerts/run"
+          -H "Authorization: Bearer ${INGEST_TOKEN}"
+        env:
+          SAANS_API_URL: ${{ secrets.SAANS_API_URL }}
+          INGEST_TOKEN: ${{ secrets.INGEST_TOKEN }}

@@ -1,0 +1,56 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+venv/
+.venv/
+env/
+.env
+.env.local
+.env.*.local
+saans.db
+*.sqlite3
+models/*.pkl
+models/*.joblib
+data/raw/
+data/exports/
+
+# ===== Node.js =====
+node_modules/
+.next/
+out/
+.turbo/
+*.tsbuildinfo
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Docker =====
+docker-compose.override.yml
+
+# ===== Misc =====
+*.log
+*.bak
+*.tmp
