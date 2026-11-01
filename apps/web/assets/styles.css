@@ -2,6 +2,7 @@
 
 :root{color-scheme:light;--ink:#17352f;--muted:#71817a;--line:#dce5dd;--paper:#f5f7f1;--white:#fff;--green:#1d594c;--mint:#e8f1e8;--gold:#d5b33e;--shadow:0 14px 38px rgba(27,61,51,.07);font-family:'DM Sans','Noto Sans Devanagari',sans-serif;font-synthesis:none;text-rendering:optimizeLegibility}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html{scroll-behavior:smooth;scroll-padding-top:88px}
 body{margin:0;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.5}
 button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #8fb9aa;outline-offset:3px}
