@@ -7,7 +7,7 @@
   <meta name="description" content="Saans gives you a clear, explainable view of air quality around Ambala, Haryana and Chandigarh." />
   <link rel="manifest" href="/assets/manifest.webmanifest" />
   <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/assets/styles.css?v=6" />
+  <link rel="stylesheet" href="/assets/styles.css?v=7" />
   <title>Saans — Air, made clear</title>
 </head>
 <body>
@@ -66,15 +66,16 @@
 
       <section class="dashboard-grid">
         <article class="panel trend-panel">
-          <div class="section-top"><div><span class="section-index">03 / RECENT TREND</span><h2>Past 24 hours</h2></div><span class="mini-tag">Hourly AQI</span></div>
+          <div class="section-top"><div><span class="section-index">03 / RECENT TREND</span><h2 id="history-heading">Past 24 hours</h2></div><label class="sr-only" for="history-range">Chart time range</label><select class="chart-range" id="history-range"><option value="24">24 hours</option><option value="168">7 days</option></select></div>
           <div class="chart-wrap"><canvas id="history-chart" role="img" aria-label="AQI history chart for the past 24 hours"></canvas><div class="chart-empty" id="chart-empty">Waiting for enough hourly data</div></div>
-          <div class="chart-axis"><span>24h ago</span><span>12h ago</span><span>Now</span></div>
+          <div class="chart-axis"><span id="history-start-label">24h ago</span><span id="history-mid-label">12h ago</span><span>Now</span></div>
           <button class="text-button export-button" id="export-csv" type="button">Download 7-day readings <span aria-hidden="true">↓</span></button>
         </article>
         <article class="panel forecast-panel" id="forecast-view">
           <div class="section-top"><div><span class="section-index">04 / WHAT’S NEXT</span><h2>Forecast outlook</h2></div><span class="mini-tag muted-tag">Baseline · 24 / 48 h</span></div>
           <div id="forecast-cards" class="forecast-cards"><div class="forecast-card"><span>24 HOURS</span><b>—</b><small>Loading</small></div><div class="forecast-card"><span>48 HOURS</span><b>—</b><small>Loading</small></div></div>
           <div class="forecast-note"><span>⌁</span><span>Persistence baseline. Bands are indicative and have not yet been calibrated on a held-out season.</span></div>
+          <div class="forecast-score" id="forecast-score" role="status" aria-live="polite">Building a forecast scorecard as actual readings arrive.</div>
         </article>
       </section>
 
@@ -106,6 +107,6 @@
   <dialog class="modal" id="alert-modal"><form method="dialog"><button class="modal-close" aria-label="Close">×</button></form><span class="section-index">STAY IN THE LOOP</span><h2>Get an air quality alert</h2><p>Choose your station and the AQI level you care about. Saans sends at most one alert in six hours and stays quiet overnight.</p><label class="field-label">Alert channel<select id="alert-channel"><option value="telegram">Telegram</option><option value="webpush">Browser push</option></select></label><label class="field-label" id="destination-label">Telegram chat ID<input id="alert-destination" placeholder="Start the Saans bot, then enter your chat ID" /></label><label class="field-label">Alert from<select id="alert-threshold"><option value="101">Moderately Polluted · 101+</option><option value="201" selected>Poor · 201+</option><option value="301">Very Poor · 301+</option><option value="401">Severe · 401+</option></select></label><button class="button-primary full-button" id="save-alert">Save alert <span>→</span></button><div class="modal-hint" id="alert-feedback">No health profile is stored.</div></dialog>
   <dialog class="modal small-modal" id="about-modal"><form method="dialog"><button class="modal-close" aria-label="Close">×</button></form><span class="section-index">ABOUT SAANS</span><h2>Air, made clear.</h2><p>Saans is an educational air quality monitor for Ambala and nearby cities. It recomputes CPCB-style AQI from pollutant readings, shows data freshness, and labels possible pollution drivers as likely.</p><p>It is not a medical device and does not provide medical advice. Browser location is not stored. If you sign up for alerts, Saans stores only the channel destination, station and threshold.</p><button class="button-secondary" id="about-close">Got it</button></dialog>
   <div class="toast" id="toast" role="status"></div>
-  <script src="/assets/app.js?v=6" defer></script>
+  <script src="/assets/app.js?v=7" defer></script>
 </body>
 </html>

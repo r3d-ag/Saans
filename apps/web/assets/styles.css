@@ -5,6 +5,7 @@
 [hidden]{display:none!important}
 .station-controls{display:flex;align-items:center;gap:8px}.location-button{height:42px;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font-weight:600;white-space:nowrap}.location-button:hover{border-color:#8cb39d;background:#f3f8f1}.location-button:disabled{opacity:.65;cursor:wait}.live-pill.delayed{color:#a36c25}.live-pill.delayed i{background:#db9a41;box-shadow:0 0 0 4px #f5ead8}.live-pill.stale{color:#a84f56}.live-pill.stale i{background:#c96366;box-shadow:0 0 0 4px #f5e4e3}.export-button{margin-top:12px}
 .panel-kicker #station-heading{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.panel-kicker #updated-time{max-width:55%;text-align:right;line-height:1.4}.station-row>b.no-aqi{font:10px 'DM Sans',sans-serif;white-space:nowrap}
+.chart-range{height:29px;padding:0 9px;border:1px solid var(--line);border-radius:99px;background:#f4f8f2;color:#526f60;font:10px 'DM Mono',monospace}.forecast-score{margin-top:11px;padding:9px 10px;border:1px solid #e3ebe3;border-radius:10px;background:#f7faf6;color:#65766c;font-size:10px;line-height:1.5}
 html{scroll-behavior:smooth;scroll-padding-top:88px}
 body{margin:0;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.5}
 button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #8fb9aa;outline-offset:3px}

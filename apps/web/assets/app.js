@@ -11,8 +11,8 @@ let lang = localStorage.getItem("saans-lang") || "en";
 let toastTimer;
 
 const text = {
-  en: {title:"Know the air around you.", details:"Pollutant readings", causes:"What’s driving it?", forecast:"Forecast outlook", plan:"A little planning helps.", updated:"Updated", loading:"Loading air…", noCause:"No strong source signal today. Check back as more data arrives.", sample:"Sample view", noData:"Waiting for enough hourly data", alertSaved:"Alert saved.", alertFailed:"Could not save this alert.", nearMe:"Near me", locating:"Finding…", noNearbyStations:"No reporting stations found within 100 km. Showing the Ambala region.", nearbyStations:"Showing stations near you. Your location was not saved.", locationUnavailable:"Location is unavailable. You can still choose a station manually.", noReading:"No valid recent reading", noAQI:"No AQI", offlineReading:"No live or saved reading is available for this station.", delayed:"Delayed", stale:"Stale", reported:"Reported", csv:"Download 7-day readings"},
-  hi: {title:"अपने आसपास की हवा जानें।", details:"प्रदूषक रीडिंग", causes:"हवा को क्या प्रभावित कर रहा है?", forecast:"आगे का अनुमान", plan:"थोड़ी योजना मददगार है।", updated:"अपडेट", loading:"हवा लोड हो रही है…", noCause:"आज किसी स्रोत का मज़बूत संकेत नहीं मिला।", sample:"नमूना दृश्य", noData:"पर्याप्त प्रति-घंटा डेटा की प्रतीक्षा", alertSaved:"अलर्ट सेव हो गया।", alertFailed:"अलर्ट सेव नहीं हो सका।", nearMe:"मेरे पास", locating:"ढूँढ रहे हैं…", noNearbyStations:"100 किमी के भीतर कोई स्टेशन नहीं मिला। Ambala क्षेत्र दिखाया जा रहा है।", nearbyStations:"आपके पास के स्टेशन दिख रहे हैं। आपका स्थान सहेजा नहीं गया।", locationUnavailable:"स्थान उपलब्ध नहीं है। आप स्टेशन को स्वयं चुन सकते हैं।", noReading:"हाल की वैध रीडिंग नहीं", noAQI:"AQI नहीं", offlineReading:"इस स्टेशन की कोई रीडिंग उपलब्ध नहीं है।", delayed:"विलंबित", stale:"पुराना डेटा", reported:"रिपोर्ट समय", csv:"7 दिनों की रीडिंग डाउनलोड करें"}
+  en: {title:"Know the air around you.", details:"Pollutant readings", causes:"What’s driving it?", forecast:"Forecast outlook", plan:"A little planning helps.", updated:"Updated", loading:"Loading air…", noCause:"No strong source signal today. Check back as more data arrives.", sample:"Sample view", noData:"Waiting for enough hourly data", alertSaved:"Alert saved.", alertFailed:"Could not save this alert.", nearMe:"Near me", locating:"Finding…", noNearbyStations:"No reporting stations found within 100 km. Showing the Ambala region.", nearbyStations:"Showing stations near you. Your location was not saved.", locationUnavailable:"Location is unavailable. You can still choose a station manually.", noReading:"No valid recent reading", noAQI:"No AQI", offlineReading:"No live or saved reading is available for this station.", delayed:"Delayed", stale:"Stale", reported:"Reported", csv:"Download 7-day readings", range24:"Past 24 hours", range7:"Past 7 days", scorePending:"Forecast scorecard is building. It appears after predictions can be matched with observed AQI.", scoreUnavailable:"Forecast scorecard is temporarily unavailable.", score:"Observed 7-day forecast MAE"},
+  hi: {title:"अपने आसपास की हवा जानें।", details:"प्रदूषक रीडिंग", causes:"हवा को क्या प्रभावित कर रहा है?", forecast:"आगे का अनुमान", plan:"थोड़ी योजना मददगार है।", updated:"अपडेट", loading:"हवा लोड हो रही है…", noCause:"आज किसी स्रोत का मज़बूत संकेत नहीं मिला।", sample:"नमूना दृश्य", noData:"पर्याप्त प्रति-घंटा डेटा की प्रतीक्षा", alertSaved:"अलर्ट सेव हो गया।", alertFailed:"अलर्ट सेव नहीं हो सका।", nearMe:"मेरे पास", locating:"ढूँढ रहे हैं…", noNearbyStations:"100 किमी के भीतर कोई स्टेशन नहीं मिला। Ambala क्षेत्र दिखाया जा रहा है।", nearbyStations:"आपके पास के स्टेशन दिख रहे हैं। आपका स्थान सहेजा नहीं गया।", locationUnavailable:"स्थान उपलब्ध नहीं है। आप स्टेशन को स्वयं चुन सकते हैं।", noReading:"हाल की वैध रीडिंग नहीं", noAQI:"AQI नहीं", offlineReading:"इस स्टेशन की कोई रीडिंग उपलब्ध नहीं है।", delayed:"विलंबित", stale:"पुराना डेटा", reported:"रिपोर्ट समय", csv:"7 दिनों की रीडिंग डाउनलोड करें", range24:"पिछले 24 घंटे", range7:"पिछले 7 दिन", scorePending:"पूर्वानुमान स्कोरकार्ड वास्तविक AQI से मिलान होने पर दिखेगा।", scoreUnavailable:"पूर्वानुमान स्कोरकार्ड अभी उपलब्ध नहीं है।", score:"पिछले 7 दिनों का पूर्वानुमान MAE"}
 };
 const tr = key => (text[lang] && text[lang][key]) || text.en[key] || key;
 
@@ -97,10 +97,6 @@ async function loadCurrent() {
     const data = await api(`/v1/stations/${encodeURIComponent(stationId)}/now`);
     current=data; localStorage.setItem(`saans-now-${stationId}`, JSON.stringify(data));
     renderCurrent(data, false);
-    const historyEnd = new Date();
-    const historyStart = new Date(historyEnd.getTime() - 24 * 60 * 60 * 1000);
-    const history = await api(`/v1/stations/${encodeURIComponent(stationId)}/history?step=hour&from=${encodeURIComponent(historyStart.toISOString())}&to=${encodeURIComponent(historyEnd.toISOString())}`);
-    drawHistory(history.points || []);
   } catch (error) {
     const pill=$(".live-pill");pill.classList.remove("delayed");pill.classList.add("stale");
     if (!current) {
@@ -112,6 +108,26 @@ async function loadCurrent() {
     }
     showToast(current ? "Showing the saved station reading." : tr("offlineReading"));
   }
+  if (current) await Promise.allSettled([loadHistory(),loadForecastScore()]);
+}
+
+async function loadHistory() {
+  const hours=Number($("#history-range").value||24), end=new Date(), start=new Date(end.getTime()-hours*60*60*1000);
+  const data=await api(`/v1/stations/${encodeURIComponent(stationId)}/history?step=hour&from=${encodeURIComponent(start.toISOString())}&to=${encodeURIComponent(end.toISOString())}`);
+  $("#history-heading").textContent=hours===24?tr("range24"):tr("range7");
+  $("#history-start-label").textContent=hours===24?"24h ago":"7d ago";
+  $("#history-mid-label").textContent=hours===24?"12h ago":"3.5d ago";
+  $("#history-chart").setAttribute("aria-label",`AQI history for the past ${hours===24?"24 hours":"7 days"}`);
+  drawHistory(data.points||[]);
+}
+
+async function loadForecastScore() {
+  const target=$("#forecast-score");
+  try {
+    const data=await api(`/v1/report-card?station=${encodeURIComponent(stationId)}&days=7`);
+    const count=data.comparisons?.length||0;
+    target.textContent=count?`${tr("score")}: ${data.mae} AQI points · ${count} matched forecasts. Lower is closer; this is a historical score, not a guarantee.`:tr("scorePending");
+  } catch { target.textContent=tr("scoreUnavailable"); }
 }
 
 function renderCurrent(data, fromCache) {
@@ -191,7 +207,7 @@ function renderMath(data) {
 function drawHistory(points) {
   window.historyPoints=points;
   const canvas=$("#history-chart"), empty=$("#chart-empty"), box=canvas.getBoundingClientRect();
-  const valid=points.filter(p=>p.aqi!==null&&p.aqi!==undefined).slice(-36);
+  const valid=points.filter(p=>p.aqi!==null&&p.aqi!==undefined);
   if (valid.length<2) {empty.hidden=false;empty.textContent=tr("noData");return;}
   empty.hidden=true;
   const ratio=window.devicePixelRatio||1; canvas.width=box.width*ratio; canvas.height=box.height*ratio;
@@ -265,7 +281,8 @@ function applyLanguage() {
   $("#page-title").textContent=tr("title");$(".section-heading h2").textContent=tr("details");
   $$(".why-panel h2")[0].textContent=tr("causes");$(".forecast-panel h2").textContent=tr("forecast");$(".action-copy h2").textContent=tr("plan");
   $("#nearby-label").textContent=tr("nearMe");$("#export-csv").firstChild.textContent=`${tr("csv")} `;
-  if(current) renderCurrent(current,false);
+  $("#history-heading").textContent=Number($("#history-range").value)===24?tr("range24"):tr("range7");
+  if(current) {renderCurrent(current,false);loadHistory().catch(()=>{});loadForecastScore();}
 }
 function setLanguage() { lang=lang==="en"?"hi":"en";localStorage.setItem("saans-lang",lang);applyLanguage(); }
 
@@ -273,6 +290,7 @@ $("#station-select").addEventListener("change",e=>selectStation(e.target.value))
 $("#refresh-button").addEventListener("click",()=>loadCurrent());
 $("#nearby-button").addEventListener("click",locateNearbyStations);
 $("#export-csv").addEventListener("click",downloadReadings);
+$("#history-range").addEventListener("change",()=>loadHistory().catch(()=>showToast("History is temporarily unavailable.")));
 $("#alerts-open").addEventListener("click",()=>$("#alert-modal").showModal());
 $("#save-alert").addEventListener("click",saveAlert);
 $("#alert-channel").addEventListener("change",e=>{$("#destination-label").hidden=e.target.value==="webpush";});
