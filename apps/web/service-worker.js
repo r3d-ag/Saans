@@ -1,5 +1,5 @@
-const CACHE = "saans-shell-v4";
-const SHELL = ["/", "/assets/styles.css", "/assets/app.js", "/assets/manifest.webmanifest", "/assets/icon.svg"];
+const CACHE = "saans-shell-v6";
+const SHELL = ["/", "/assets/styles.css?v=6", "/assets/app.js?v=6", "/assets/manifest.webmanifest", "/assets/icon.svg"];
 self.addEventListener("install", event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)));
   self.skipWaiting();

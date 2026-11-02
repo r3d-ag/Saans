@@ -11,8 +11,8 @@ let lang = localStorage.getItem("saans-lang") || "en";
 let toastTimer;
 
 const text = {
-  en: {title:"Know the air around you.", details:"Pollutant readings", causes:"What’s driving it?", forecast:"Forecast outlook", plan:"A little planning helps.", updated:"Updated", loading:"Loading air…", noCause:"No strong source signal today. Check back as more data arrives.", sample:"Sample view", noData:"Waiting for enough hourly data", alertSaved:"Alert saved.", alertFailed:"Could not save this alert."},
-  hi: {title:"अपने आसपास की हवा जानें।", details:"प्रदूषक रीडिंग", causes:"हवा को क्या प्रभावित कर रहा है?", forecast:"आगे का अनुमान", plan:"थोड़ी योजना मददगार है।", updated:"अपडेट", loading:"हवा लोड हो रही है…", noCause:"आज किसी स्रोत का मज़बूत संकेत नहीं मिला।", sample:"नमूना दृश्य", noData:"पर्याप्त प्रति-घंटा डेटा की प्रतीक्षा", alertSaved:"अलर्ट सेव हो गया।", alertFailed:"अलर्ट सेव नहीं हो सका।"}
+  en: {title:"Know the air around you.", details:"Pollutant readings", causes:"What’s driving it?", forecast:"Forecast outlook", plan:"A little planning helps.", updated:"Updated", loading:"Loading air…", noCause:"No strong source signal today. Check back as more data arrives.", sample:"Sample view", noData:"Waiting for enough hourly data", alertSaved:"Alert saved.", alertFailed:"Could not save this alert.", nearMe:"Near me", locating:"Finding…", noNearbyStations:"No reporting stations found within 100 km. Showing the Ambala region.", nearbyStations:"Showing stations near you. Your location was not saved.", locationUnavailable:"Location is unavailable. You can still choose a station manually.", noReading:"No valid recent reading", noAQI:"No AQI", offlineReading:"No live or saved reading is available for this station.", delayed:"Delayed", stale:"Stale", reported:"Reported", csv:"Download 7-day readings"},
+  hi: {title:"अपने आसपास की हवा जानें।", details:"प्रदूषक रीडिंग", causes:"हवा को क्या प्रभावित कर रहा है?", forecast:"आगे का अनुमान", plan:"थोड़ी योजना मददगार है।", updated:"अपडेट", loading:"हवा लोड हो रही है…", noCause:"आज किसी स्रोत का मज़बूत संकेत नहीं मिला।", sample:"नमूना दृश्य", noData:"पर्याप्त प्रति-घंटा डेटा की प्रतीक्षा", alertSaved:"अलर्ट सेव हो गया।", alertFailed:"अलर्ट सेव नहीं हो सका।", nearMe:"मेरे पास", locating:"ढूँढ रहे हैं…", noNearbyStations:"100 किमी के भीतर कोई स्टेशन नहीं मिला। Ambala क्षेत्र दिखाया जा रहा है।", nearbyStations:"आपके पास के स्टेशन दिख रहे हैं। आपका स्थान सहेजा नहीं गया।", locationUnavailable:"स्थान उपलब्ध नहीं है। आप स्टेशन को स्वयं चुन सकते हैं।", noReading:"हाल की वैध रीडिंग नहीं", noAQI:"AQI नहीं", offlineReading:"इस स्टेशन की कोई रीडिंग उपलब्ध नहीं है।", delayed:"विलंबित", stale:"पुराना डेटा", reported:"रिपोर्ट समय", csv:"7 दिनों की रीडिंग डाउनलोड करें"}
 };
 const tr = key => (text[lang] && text[lang][key]) || text.en[key] || key;
 
@@ -33,6 +33,20 @@ function fmtTime(iso) {
 function fmtDate() {
   return new Intl.DateTimeFormat(lang === "hi" ? "hi-IN" : "en-IN", {weekday:"long", day:"numeric", month:"long", timeZone:"Asia/Kolkata"}).format(new Date());
 }
+function fmtDateTime(iso) {
+  if (!iso) return "—";
+  return new Intl.DateTimeFormat(lang === "hi" ? "hi-IN" : "en-IN", {day:"numeric", month:"short", hour:"numeric", minute:"2-digit", timeZone:"Asia/Kolkata"}).format(new Date(iso));
+}
+function ageMinutes(iso) { return iso ? Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / 60000)) : null; }
+function ageLabel(minutes) {
+  if (minutes === null) return tr("noReading");
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours=Math.floor(minutes/60);
+  if (hours < 24) return `${hours}h ago`;
+  const days=Math.floor(hours/24);
+  return `${days}d ago`;
+}
 function safe(value, fallback="—") { return value === null || value === undefined ? fallback : value; }
 function stationDisplayName(station) {
   const name = String(station?.name || "").trim();
@@ -48,21 +62,35 @@ function stationLocation(station) {
   if (usefulCity && usefulState && city.toLowerCase() !== state.toLowerCase()) return `${city} · ${state}`;
   return usefulCity || usefulState || station?.source || "";
 }
+function stationSecondary(station) {
+  const parts=[];
+  if (Number.isFinite(station?.distance_km)) parts.push(`${station.distance_km} km`);
+  const location=stationLocation(station);
+  if (location && location !== station?.source) parts.push(location);
+  if (station?.source) parts.push(station.source);
+  return [...new Set(parts)].join(" · ");
+}
 
 async function loadStations() {
   const data = await api("/v1/stations"); stations = data.stations;
+  $("#station-region-label").textContent="Ambala region";
+  renderStationOptions();
+  if (!stations.some(s=>s.id===stationId)) stationId = stations[0]?.id;
+  $("#station-select").value = stationId;
+  renderStations(stations);
+}
+function renderStationOptions() {
   const select = $("#station-select");
   select.innerHTML = stations.map(s=>{
     const location=stationLocation(s), label=stationDisplayName(s);
     return `<option value="${escapeHtml(s.id)}">${escapeHtml(label)}${location&&location!==label?` · ${escapeHtml(location)}`:""}</option>`;
   }).join("");
-  if (!stations.some(s=>s.id===stationId)) stationId = stations[0]?.id;
   select.value = stationId;
-  renderStations(stations);
 }
 function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch])); }
 
 async function loadCurrent() {
+  if (current?.station?.id !== stationId) current = null;
   const cached = localStorage.getItem(`saans-now-${stationId}`);
   if (cached) { try { current=JSON.parse(cached); renderCurrent(current, true); } catch {} }
   try {
@@ -74,9 +102,15 @@ async function loadCurrent() {
     const history = await api(`/v1/stations/${encodeURIComponent(stationId)}/history?step=hour&from=${encodeURIComponent(historyStart.toISOString())}&to=${encodeURIComponent(historyEnd.toISOString())}`);
     drawHistory(history.points || []);
   } catch (error) {
-    if (!current) $("#aqi-category").textContent = "Offline · no saved reading";
-    $("#freshness-label").textContent = "Offline";
-    showToast("Showing saved data where available.");
+    const pill=$(".live-pill");pill.classList.remove("delayed");pill.classList.add("stale");
+    if (!current) {
+      $("#aqi-number").textContent="—";$("#ring-value").textContent="—";
+      $("#aqi-category").textContent=tr("offlineReading");$("#freshness-label").textContent="Offline";
+    } else {
+      $("#freshness-label").textContent=`Offline · ${ageLabel(ageMinutes(current.as_of))}`;
+      $("#updated-time").textContent=`${tr("reported")} ${fmtDateTime(current.as_of)} IST · saved`;
+    }
+    showToast(current ? "Showing the saved station reading." : tr("offlineReading"));
   }
 }
 
@@ -84,8 +118,12 @@ function renderCurrent(data, fromCache) {
   const number = data.aqi;
   const label=stationDisplayName(data.station), location=stationLocation(data.station);
   $("#station-heading").textContent = location && location !== label ? `${label} · ${location}` : label;
-  $("#updated-time").textContent = `${fromCache ? "Saved · " : ""}${fmtTime(data.as_of)} IST`;
-  $("#freshness-label").textContent = fromCache ? "Offline cache" : tr("updated");
+  const age=ageMinutes(data.as_of), pill=$(".live-pill");
+  const delayed=age !== null && age >= 90 && age < 360;
+  const stale=age === null || age >= 360;
+  pill.classList.toggle("delayed",delayed);pill.classList.toggle("stale",stale);
+  $("#freshness-label").textContent = data.source === "demo" ? tr("sample") : age === null ? tr("noReading") : delayed ? `${tr("delayed")} · ${ageLabel(age)}` : stale ? `${tr("stale")} · ${ageLabel(age)}` : `${tr("updated")} · ${ageLabel(age)}`;
+  $("#updated-time").textContent = data.as_of ? `${tr("reported")} ${fmtDateTime(data.as_of)} IST · ${data.source || ""}${fromCache ? " · saved" : ""}` : tr("noReading");
   $("#date-label").textContent = `${fmtDate().toUpperCase()} · AIR QUALITY`;
   $("#aqi-number").textContent = safe(number);
   $("#ring-value").textContent = safe(number);
@@ -170,13 +208,35 @@ function drawHistory(points) {
 }
 function renderStations(items) {
   const list=$("#station-list"), pins=$("#map-pins");
-  list.innerHTML=items.map(s=>`<button class="station-row ${s.id===stationId?"active":""}" data-station="${escapeHtml(s.id)}"><i class="station-color"></i><span><strong>${escapeHtml(stationDisplayName(s))}</strong><small>${escapeHtml(stationLocation(s))}</small></span><b style="color:${COLOURS[s.category]||"#718077"}">${safe(s.aqi)}</b></button>`).join("");
+  list.innerHTML=items.map(s=>`<button class="station-row ${s.id===stationId?"active":""}" data-station="${escapeHtml(s.id)}"><i class="station-color"></i><span><strong>${escapeHtml(stationDisplayName(s))}</strong><small>${escapeHtml(stationSecondary(s))}</small></span><b class="${s.aqi===null?"no-aqi":""}" title="${s.aqi===null?escapeHtml(tr("noReading")):"AQI"}" style="color:${COLOURS[s.category]||"#718077"}">${s.aqi===null?escapeHtml(tr("noAQI")):safe(s.aqi)}</b></button>`).join("");
   const minLat=29.5,maxLat=31.8,minLon=75.5,maxLon=78.2;
   pins.innerHTML=items.map(s=>{const left=7+(s.lon-minLon)/(maxLon-minLon)*86,top=90-(s.lat-minLat)/(maxLat-minLat)*78;return `<span class="map-pin ${s.id===stationId?"active":""}" style="left:${left}%;top:${top}%" data-label="${escapeHtml(stationDisplayName(s))} · ${safe(s.aqi)}"></span>`;}).join("");
   $$(".station-row",list).forEach(button=>button.addEventListener("click",()=>selectStation(button.dataset.station)));
 }
 async function selectStation(id) {
   stationId=id;localStorage.setItem("saans-station",id);$("#station-select").value=id;renderStations(stations);await loadCurrent();
+}
+function locateNearbyStations() {
+  if (!navigator.geolocation) { showToast(tr("locationUnavailable")); return; }
+  const button=$("#nearby-button"), label=$("#nearby-label");
+  button.disabled=true;label.textContent=tr("locating");
+  navigator.geolocation.getCurrentPosition(async position=>{
+    try {
+      const {latitude,longitude}=position.coords;
+      const data=await api(`/v1/stations?lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}&radius_km=100`);
+      if (!data.stations.length) { showToast(tr("noNearbyStations")); return; }
+      stations=data.stations;stationId=stations[0].id;localStorage.setItem("saans-station",stationId);
+      $("#station-region-label").textContent="Nearby · 100 km";
+      renderStationOptions();renderStations(stations);await loadCurrent();showToast(tr("nearbyStations"));
+    } catch(error) { showToast(error.message || tr("locationUnavailable")); }
+    finally { button.disabled=false;label.textContent=tr("nearMe"); }
+  },()=>{button.disabled=false;label.textContent=tr("nearMe");showToast(tr("locationUnavailable"));},
+  {enableHighAccuracy:false,timeout:12000,maximumAge:300000});
+}
+function downloadReadings() {
+  const to=new Date(), from=new Date(to.getTime()-7*24*60*60*1000);
+  const params=new URLSearchParams({station:stationId,from:from.toISOString(),to:to.toISOString()});
+  window.location.assign(`/v1/export.csv?${params.toString()}`);
 }
 async function saveAlert() {
   const channel=$("#alert-channel").value, threshold=Number($("#alert-threshold").value);
@@ -204,12 +264,15 @@ function urlBase64ToUint8Array(base64String) {
 function applyLanguage() {
   $("#page-title").textContent=tr("title");$(".section-heading h2").textContent=tr("details");
   $$(".why-panel h2")[0].textContent=tr("causes");$(".forecast-panel h2").textContent=tr("forecast");$(".action-copy h2").textContent=tr("plan");
+  $("#nearby-label").textContent=tr("nearMe");$("#export-csv").firstChild.textContent=`${tr("csv")} `;
   if(current) renderCurrent(current,false);
 }
 function setLanguage() { lang=lang==="en"?"hi":"en";localStorage.setItem("saans-lang",lang);applyLanguage(); }
 
 $("#station-select").addEventListener("change",e=>selectStation(e.target.value));
 $("#refresh-button").addEventListener("click",()=>loadCurrent());
+$("#nearby-button").addEventListener("click",locateNearbyStations);
+$("#export-csv").addEventListener("click",downloadReadings);
 $("#alerts-open").addEventListener("click",()=>$("#alert-modal").showModal());
 $("#save-alert").addEventListener("click",saveAlert);
 $("#alert-channel").addEventListener("change",e=>{$("#destination-label").hidden=e.target.value==="webpush";});
