@@ -7,7 +7,7 @@
   <meta name="description" content="Saans gives you a clear, explainable view of air quality around Ambala, Haryana and Chandigarh." />
   <link rel="manifest" href="/assets/manifest.webmanifest" />
   <link rel="icon" href="/assets/icon.svg" type="image/svg+xml" />
-  <link rel="stylesheet" href="/assets/styles.css" />
+  <link rel="stylesheet" href="/assets/styles.css?v=4" />
   <title>Saans — Air, made clear</title>
 </head>
 <body>
@@ -105,6 +105,6 @@
   <dialog class="modal" id="alert-modal"><form method="dialog"><button class="modal-close" aria-label="Close">×</button></form><span class="section-index">STAY IN THE LOOP</span><h2>Get an air quality alert</h2><p>Choose your station and the AQI level you care about. Saans sends at most one alert in six hours and stays quiet overnight.</p><label class="field-label">Alert channel<select id="alert-channel"><option value="telegram">Telegram</option><option value="webpush">Browser push</option></select></label><label class="field-label" id="destination-label">Telegram chat ID<input id="alert-destination" placeholder="Start the Saans bot, then enter your chat ID" /></label><label class="field-label">Alert from<select id="alert-threshold"><option value="101">Moderately Polluted · 101+</option><option value="201" selected>Poor · 201+</option><option value="301">Very Poor · 301+</option><option value="401">Severe · 401+</option></select></label><button class="button-primary full-button" id="save-alert">Save alert <span>→</span></button><div class="modal-hint" id="alert-feedback">No health profile is stored.</div></dialog>
   <dialog class="modal small-modal" id="about-modal"><form method="dialog"><button class="modal-close" aria-label="Close">×</button></form><span class="section-index">ABOUT SAANS</span><h2>Air, made clear.</h2><p>Saans is an educational air quality monitor for Ambala and nearby cities. It recomputes CPCB-style AQI from pollutant readings, shows data freshness, and labels possible pollution drivers as likely.</p><p>It is not a medical device and does not provide medical advice. Browser location is not stored. If you sign up for alerts, Saans stores only the channel destination, station and threshold.</p><button class="button-secondary" id="about-close">Got it</button></dialog>
   <div class="toast" id="toast" role="status"></div>
-  <script src="/assets/app.js" defer></script>
+  <script src="/assets/app.js?v=4" defer></script>
 </body>
 </html>
